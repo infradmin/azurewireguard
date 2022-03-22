@@ -15,12 +15,14 @@ variable "azure" {
 
 variable "admin" {
   type = object({
-    name     = string,
-    password = string
+    name                 = string,
+    password             = string,
+    disable_ssh_password = bool
   })
   default = {
-    name     = "azureadmin",
-    password = "passwd4Azure"
+    name                 = "azureadmin",
+    password             = "passwd4Azure",
+    disable_ssh_password = true
   }
 }
 

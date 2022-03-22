@@ -53,14 +53,14 @@ resource "azurerm_network_interface" "main" {
 }
 
 resource "azurerm_linux_virtual_machine" "main" {
-  name                  = "${var.wg.dbvmprefix}vm"
-  location              = var.wg.rglocation
-  resource_group_name   = azurerm_resource_group.main.name
-  size                  = var.wg.vmsize
-  network_interface_ids = [azurerm_network_interface.main.id]
-  admin_username        = var.admin.name
-  #   admin_password                  = var.admin.password
-  #   disable_password_authentication = false
+  name                            = "${var.wg.dbvmprefix}vm"
+  location                        = var.wg.rglocation
+  resource_group_name             = azurerm_resource_group.main.name
+  size                            = var.wg.vmsize
+  network_interface_ids           = [azurerm_network_interface.main.id]
+  admin_username                  = var.admin.name
+  admin_password                  = var.admin.disable_ssh_password ? null : var.admin.password
+  disable_password_authentication = var.admin.disable_ssh_password
   admin_ssh_key {
     username   = var.admin.name
     public_key = tls_private_key.sshkey.public_key_openssh

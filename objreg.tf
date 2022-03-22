@@ -35,15 +35,15 @@ resource "azurerm_network_interface" "reg" {
 }
 
 resource "azurerm_linux_virtual_machine" "reg" {
-  for_each              = var.wg.wglocations
-  name                  = "az${each.key}wgvm"
-  location              = each.value
-  resource_group_name   = azurerm_resource_group.main.name
-  size                  = var.wg.vmsize
-  network_interface_ids = [azurerm_network_interface.reg[each.key].id]
-  admin_username        = var.admin.name
-  # admin_password                  = var.admin.password
-  # disable_password_authentication = false
+  for_each                        = var.wg.wglocations
+  name                            = "az${each.key}wgvm"
+  location                        = each.value
+  resource_group_name             = azurerm_resource_group.main.name
+  size                            = var.wg.vmsize
+  network_interface_ids           = [azurerm_network_interface.reg[each.key].id]
+  admin_username                  = var.admin.name
+  admin_password                  = var.admin.disable_ssh_password ? null : var.admin.password
+  disable_password_authentication = var.admin.disable_ssh_password
   admin_ssh_key {
     username   = var.admin.name
     public_key = tls_private_key.sshkey.public_key_openssh
