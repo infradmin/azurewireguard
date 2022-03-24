@@ -94,7 +94,7 @@ write_files:
       cmp -s $dbpath/server/wg0.conf etc/wireguard/wg0.conf || { cp -f $dbpath/server/wg0.conf /etc/wireguard/; sudo service wg-quick@wg0 restart; }
       for i in {10..99}
       do
-        [[ -f $dbpath/clients/conf/client$(echo $i).conf ]] || { echo -e "[Interface]\nPrivateKey = $(<$dbpath/clients/keys/client$(echo $i).privatekey)\nAddress = 172.27.1.$(echo $i)/24\nDNS = 1.1.1.1\n\n[Peer]\nEndpoint = $publicip:$port\nPublicKey = $(<$dbpath/server/keys/publickey)\nAllowedIPs = 0.0.0.0/0" > $dbpath/clients/conf/client$(echo $i).conf; rm $dbpath/clients/qr/client$(echo $i).png; }
+        [[ -f $dbpath/clients/conf/client$(echo $i).conf ]] || { echo -e "[Interface]\nPrivateKey = $(<$dbpath/clients/keys/client$(echo $i).privatekey)\nAddress = 172.27.1.$(echo $i)/24\nDNS = 1.1.1.1\n\n[Peer]\nEndpoint = $localip:$port\nPublicKey = $(<$dbpath/server/keys/publickey)\nAllowedIPs = 0.0.0.0/0" > $dbpath/clients/conf/client$(echo $i).conf; rm $dbpath/clients/qr/client$(echo $i).png; }
         [[ -f $dbpath/clients/qr/client$(echo $i).png ]] || { qrencode -t png -r $dbpath/clients/conf/client$(echo $i).conf -o $dbpath/clients/qr/client$(echo $i).png; }
       done
       if cmp $dbpath/wg.ini $dbpath/wg.cmp

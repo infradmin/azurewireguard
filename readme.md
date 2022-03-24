@@ -1,7 +1,9 @@
 # Wireguard deployment automation in MS Azure cloud
 
+
 ## Purpose
 To deploy a set of [Wireguard](https://www.wireguard.com/) cloud servers across the world in a fully automated way.
+
 
 ## Details
 - Microsoft Azure is used in this project (not mandatory but a requirement of my current situation).
@@ -14,9 +16,16 @@ To deploy a set of [Wireguard](https://www.wireguard.com/) cloud servers across 
 - To simplify client configuration web-interface is needed where authorized people can either download a config file (for computer) or scan a QR-code (for smartphone).
 - The solution should be more or less fault tolerable, self-healing and keeping same client settings in case of any gateway fails and re-deployed.
 
+
 ## Design
 One DB-server and a separate gateway for every chosen region. Each gateway upon deployment tries to get its setings from DB; if fails (DB is inaccessible or empty), then it creates new. If later DB becomes accessible again and it has previous version of configuration — the older one will be taken by the gateway. Also DB server runs web-server with basic uathentication which show all client settings (provides config file download links and demostrates QR-codes). Also each gateway monitors if this central web-server available; if not gateways will run their own web-pages, but they know only their local settings. While central web-server is reachable gateways' ones are unactive. HTTP is used as far as ther are no domain names, only IP-addresses.
+
 Administrator can login to any server using SSH and a key (generated inside this project). Password authentication is disabled currently but can be enabled back. But in any case password must be set because it is also used for web auth.
+
+Azure authentication is done using service principal with secret (like it is described [here](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret)). If other method is preferred please adjust the code (`azure` variable).
+
+Client config currently specify to route all traffic to the tunnel. Change locally if needed.
+
 
 ## Usage
 1. Clone this project.
