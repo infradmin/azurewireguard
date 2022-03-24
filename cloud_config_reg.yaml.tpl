@@ -91,7 +91,7 @@ write_files:
         echo -e "[Interface]\nPrivateKey = $(<$dbpath/server/keys/privatekey)\nAddress = 172.27.1.1/24\nListenPort = $port\nPostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\nPostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE" > $dbpath/server/wg0.conf
         for i in {10..99}; do echo -e "\n[Peer]\n# Name = Client$(echo $i)\nPublicKey = $(<$dbpath/clients/keys/client$(echo $i).publickey)\nAllowedIPs = 172.27.1.$(echo $i)/32" >> $dbpath/server/wg0.conf; done
       fi
-      cmp -s $dbpath/server/wg0.conf etc/wireguard/wg0.conf || { cp -f $dbpath/server/wg0.conf /etc/wireguard/; sudo service wg-quick@wg0 restart; }
+      cmp -s $dbpath/server/wg0.conf /etc/wireguard/wg0.conf || { cp -f $dbpath/server/wg0.conf /etc/wireguard/; sudo service wg-quick@wg0 restart; }
       for i in {10..99}
       do
         [[ -f $dbpath/clients/conf/client$(echo $i).conf ]] || { echo -e "[Interface]\nPrivateKey = $(<$dbpath/clients/keys/client$(echo $i).privatekey)\nAddress = 172.27.1.$(echo $i)/24\nDNS = 1.1.1.1\n\n[Peer]\nEndpoint = $localip:$port\nPublicKey = $(<$dbpath/server/keys/publickey)\nAllowedIPs = 0.0.0.0/0" > $dbpath/clients/conf/client$(echo $i).conf; rm $dbpath/clients/qr/client$(echo $i).png; }
@@ -128,8 +128,8 @@ runcmd:
   - systemctl start wg-quick@wg0
   - (crontab -l 2>/dev/null; echo "MAILTO=''") | crontab -
   - (crontab -l 2>/dev/null; echo "$((${index}%15))-$((${index}%2+58))/15 * * * * bash ${scriptpath}/syncwg.sh ${dbpath}") | crontab -
-  - (crontab -l 2>/dev/null; echo "0-58/2 * * * * curl http://20.216.0.247 > /dev/null 2>&1 && { systemctl is-active nginx && sudo systemctl stop nginx; true; } || { systemctl is-active nginx || sudo systemctl start nginx; }") | crontab -
-  - (crontab -l 2>/dev/null; echo "1-59/2 * * * * service wg-quick@wg0 status > /dev/null || sudo service wg-quick@wg0 restart") | crontab -
+  - (crontab -l 2>/dev/null; echo "0-58/2 * * * * curl http://20.216.0.247 > /dev/null 2>&1 && { systemctl is-active --quiet nginx && sudo systemctl stop nginx; true; } || { systemctl is-active --quiet nginx || sudo systemctl start nginx; }") | crontab -
+  - (crontab -l 2>/dev/null; echo "1-59/2 * * * * systemctl is-active --quiet wg-quick@wg0 || sudo systemctl restart wg-quick@wg0") | crontab -
   - rm /var/www/html/index.nginx-debian.html
   - mkdir /var/www/html/clients
   - echo -n '${username}:' > /etc/nginx/.htpasswd

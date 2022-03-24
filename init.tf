@@ -13,7 +13,13 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    virtual_machine {
+      delete_os_disk_on_deletion     = true
+      graceful_shutdown              = false
+      skip_shutdown_and_force_delete = true
+    }
+  }
   tenant_id       = var.azure.tenant_id
   subscription_id = var.azure.subscription_id
   client_id       = var.azure.client_id

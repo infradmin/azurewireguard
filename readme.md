@@ -15,6 +15,7 @@ To deploy a set of [Wireguard](https://www.wireguard.com/) cloud servers across 
 - Each client has different settings per gateway to reduce the risk of compromise.
 - To simplify client configuration web-interface is needed where authorized people can either download a config file (for computer) or scan a QR-code (for smartphone).
 - The solution should be more or less fault tolerable, self-healing and keeping same client settings in case of any gateway fails and re-deployed.
+- IPv6 is not needed.
 
 
 ## Design
