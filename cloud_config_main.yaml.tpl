@@ -75,6 +75,11 @@ write_files:
       }
     path: ${scriptpath}/updatehtml.sh
     permissions: '755'
+  - content: |
+      MAILTO=''
+      */3 * * * * root ${scriptpath}/updatehtml.sh ${dbpath}
+      * * * * * root systemctl is-active --quiet nginx || systemctl start nginx
+    path: /etc/cron.d/wireguard
 package_update: true
 package_upgrade: true
 packages:
@@ -83,9 +88,5 @@ packages:
 runcmd:
   - mkdir -m 777 -p ${dbpath}
   - rm /var/www/html/index.nginx-debian.html
-  - echo -n '${username}:' > /etc/nginx/.htpasswd
-  - openssl passwd -apr1 '${password}' >> /etc/nginx/.htpasswd
+  - echo "${username}:$(openssl passwd -apr1 '${password}')" > /etc/nginx/.htpasswd
   - nginx -s reload
-  - (crontab -l 2>/dev/null; echo "MAILTO=''") | crontab -
-  - (crontab -l 2>/dev/null; echo "*/3 * * * * bash ${scriptpath}/updatehtml.sh ${dbpath}") | crontab -
-  - (crontab -l 2>/dev/null; echo "* * * * * systemctl is-active --quiet nginx || sudo systemctl start nginx") | crontab -

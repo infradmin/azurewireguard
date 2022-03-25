@@ -7,7 +7,7 @@ write_files:
       dbpath=${dbpath}
       region=${region}
       azregion=${azregion}
-    path: "/root/wg.ini"
+    path: "${dbpath}/wg.ini"
   - content: |
       ${username}
     path: "/root/.ssh/username"
@@ -108,6 +108,12 @@ write_files:
       cp -f $dbpath/wg.ini $dbpath/wg.cmp
     path: ${scriptpath}/syncwg.sh
     permissions: '755'
+  - content: |
+      MAILTO=''
+      ${index}-59/15 * * * * root ${scriptpath}/syncwg.sh ${dbpath}
+      0-59/2 * * * * root curl http://${remoteip} > /dev/null 2>&1 && { systemctl is-active --quiet nginx && systemctl stop nginx; true; } || { systemctl is-active --quiet nginx || systemctl start nginx; }
+      1-59/2 * * * * root systemctl is-active --quiet wg-quick@wg0 || systemctl restart wg-quick@wg0
+    path: /etc/cron.d/wireguard
 package_update: true
 package_upgrade: true
 packages:
@@ -126,14 +132,9 @@ runcmd:
   - bash ${scriptpath}//syncwg.sh ${dbpath}
   - systemctl enable wg-quick@wg0
   - systemctl start wg-quick@wg0
-  - (crontab -l 2>/dev/null; echo "MAILTO=''") | crontab -
-  - (crontab -l 2>/dev/null; echo "$((${index}%15))-$((${index}%2+58))/15 * * * * bash ${scriptpath}/syncwg.sh ${dbpath}") | crontab -
-  - (crontab -l 2>/dev/null; echo "0-58/2 * * * * curl http://20.216.0.247 > /dev/null 2>&1 && { systemctl is-active --quiet nginx && sudo systemctl stop nginx; true; } || { systemctl is-active --quiet nginx || sudo systemctl start nginx; }") | crontab -
-  - (crontab -l 2>/dev/null; echo "1-59/2 * * * * systemctl is-active --quiet wg-quick@wg0 || sudo systemctl restart wg-quick@wg0") | crontab -
   - rm /var/www/html/index.nginx-debian.html
   - mkdir /var/www/html/clients
-  - echo -n '${username}:' > /etc/nginx/.htpasswd
-  - openssl passwd -apr1 '${password}' >> /etc/nginx/.htpasswd
+  - echo "${username}:$(openssl passwd -apr1 '${password}')" > /etc/nginx/.htpasswd
   - nginx -s reload
   - ln -s ${dbpath}/clients/conf /var/www/html/clients/conf
   - ln -s ${dbpath}/clients/qr /var/www/html/clients/qr
