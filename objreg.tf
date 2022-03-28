@@ -1,3 +1,24 @@
+resource "azurerm_network_security_group" "reg" {
+  for_each            = var.wg.wglocations
+  name                = "az${each.key}wgnsg"
+  location            = each.value
+  resource_group_name = azurerm_resource_group.main.name
+  dynamic "security_rule" {
+    for_each = [22, 80, var.wg.port]
+    content {
+      name                       = "Allow port ${security_rule.value} in"
+      priority                   = 1000 + security_rule.value
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = security_rule.value == var.wg.port ? "Udp" : "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = "*"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    }
+  }
+}
+
 resource "azurerm_virtual_network" "reg" {
   for_each            = var.wg.wglocations
   name                = "az${each.key}wgvnet"
@@ -8,6 +29,7 @@ resource "azurerm_virtual_network" "reg" {
   subnet {
     name           = "subnet"
     address_prefix = "172.27.0.0/24"
+    security_group = azurerm_network_security_group.reg[each.key].id
   }
 }
 
